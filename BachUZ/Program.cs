@@ -20,7 +20,7 @@ namespace BachUZ
         {
             _config = BuildConfig();
 
-            var services = ConfigureServices();
+            using var services = ConfigureServices();
             var client = services.GetRequiredService<DiscordSocketClient>();
 
             client.Log += LogAsync;
@@ -30,6 +30,12 @@ namespace BachUZ
             await client.StartAsync();
 
             await services.GetRequiredService<CommandHandlingService>().InstallCommandsAsync();
+
+            client.Ready += () =>
+            {
+                client.SetActivityAsync(new Game($"Prefix: {_config["prefix"]}"));
+                return Task.CompletedTask;
+            };
 
             await Task.Delay(-1);
         }
