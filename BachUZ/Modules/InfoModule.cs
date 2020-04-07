@@ -41,7 +41,7 @@ namespace BachUZ.Modules
 
             var embed = new EmbedBuilder()
                 .AddField("Name", $"**{user.Username}**", true)
-                .AddField("Id", $"{user.Id}", true)
+                .AddField("Id", user.Id, true)
                 .AddField(EmptyString, EmptyString, true)
                 .AddField("Joined Server at", $"{user.JoinedAt:dd.MM.yyyy HH:mm}", true)
                 .AddField("Joined Discord at", $"{user.CreatedAt:dd.MM.yyyy HH:mm}", true)
