@@ -54,5 +54,33 @@ namespace BachUZ.Modules
 
             await Context.Channel.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
         }
+
+        [Command("serverinfo")]
+        [Alias("si", "guildinfo")]
+        [RequireContext(ContextType.Guild)]
+        public async Task GuildInfo()
+        {
+            var features = string.Join("\n", Context.Guild.Features);
+            if (string.IsNullOrEmpty(features))
+            {
+                features = "-";
+            }
+            var embed = new EmbedBuilder()
+                .WithAuthor("Server info")
+                .WithTitle(Context.Guild.Name)
+                .AddField("Id", Context.Guild.Id, true)
+                .AddField("Owner", Context.Guild.Owner.Username, true)
+                .AddField("Members", Context.Guild.MemberCount, true)
+                .AddField("Text channels", Context.Guild.TextChannels.Count, true)
+                .AddField("Voice channels", Context.Guild.VoiceChannels.Count, true)
+                .AddField("Created at", $"{Context.Guild.CreatedAt:dd.MM.yyyy HH:mm}", true)
+                .AddField("Voice region", Context.Guild.VoiceRegionId, true)
+                .AddField("Roles", Context.Guild.Roles.Count, true)
+                .AddField("Features", features, true)
+                .WithThumbnailUrl(Context.Guild.IconUrl)
+                .Build();
+
+            await Context.Channel.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
+        }
     }
 }
