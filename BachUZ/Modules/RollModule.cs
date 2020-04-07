@@ -12,7 +12,7 @@ namespace BachUZ.Modules
         {
             Random rand = new Random();
             var rollResult = rand.Next(1, 7);
-            var msg = await Context.Channel.SendMessageAsync($"Dice shows {rollResult}").ConfigureAwait(false);
+            await Context.Channel.SendMessageAsync($"Dice shows {rollResult}").ConfigureAwait(false);
         }
     }
 }

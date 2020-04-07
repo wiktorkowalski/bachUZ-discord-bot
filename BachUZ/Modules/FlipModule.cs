@@ -12,7 +12,7 @@ namespace BachUZ.Modules
         {
             Random rand = new Random();
             var tossResult = rand.Next(2) == 1 ? "tails" : "heads";
-            var msg = await Context.Channel.SendMessageAsync($"Coin shows {tossResult}").ConfigureAwait(false);
+            await Context.Channel.SendMessageAsync($"Coin shows {tossResult}").ConfigureAwait(false);
         }
     }
 }
