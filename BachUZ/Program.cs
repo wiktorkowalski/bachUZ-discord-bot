@@ -25,7 +25,6 @@ namespace BachUZ
 
             client.Log += LogAsync;
             services.GetRequiredService<CommandService>().Log += LogAsync;
-
             await client.LoginAsync(TokenType.Bot, _config["token"]);
             await client.StartAsync();
 
