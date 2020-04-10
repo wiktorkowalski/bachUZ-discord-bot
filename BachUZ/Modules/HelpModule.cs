@@ -22,6 +22,7 @@ namespace BachUZ.Modules
         }
 
         [Command("help")]
+        [Summary("Displays a help command")]
         public async Task Help()
         {
             var prefix = _config["prefix"];
@@ -53,6 +54,7 @@ namespace BachUZ.Modules
         }
 
         [Command("help")]
+        [Summary("Displays a help command")]
         public async Task Help(string command)
         {
             var result = _commandService.Search(Context, command);

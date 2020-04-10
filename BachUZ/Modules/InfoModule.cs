@@ -24,6 +24,7 @@ namespace BachUZ.Modules
 
         [Command("userinfo")]
         [Alias("ui", "whois")]
+        [Summary("Returns data about a user")]
         [RequireContext(ContextType.Guild)]
         public async Task UserInfo(IGuildUser usr = null)
         {
@@ -57,6 +58,7 @@ namespace BachUZ.Modules
 
         [Command("serverinfo")]
         [Alias("si", "guildinfo")]
+        [Summary("Returns data about current guild")]
         [RequireContext(ContextType.Guild)]
         public async Task GuildInfo()
         {
