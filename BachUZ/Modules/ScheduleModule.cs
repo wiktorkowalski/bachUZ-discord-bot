@@ -12,17 +12,29 @@ namespace BachUZ.Modules
 {
     public class ScheduleModule : ModuleBase<SocketCommandContext>
     {
-        [Command("schedule")]
+        [Command("schedule", RunMode = RunMode.Async)]
         [Alias("plan")]
         [Summary("Looks for a specified group class schedule")]
         public async Task Schedule(string groupName)
         {
+            if (UZScheduleService.ScheduleCache.Count == 0)
+            {
+                var sw = Stopwatch.StartNew();
+                var msg = await Context.Channel.SendMessageAsync("Renewing schedules cache...");
+                await UZScheduleService.PopulateScheduleCache();
+                sw.Stop();
+                await msg.ModifyAsync(m => m.Content = $"Cache has been renewed! ({(int)sw.Elapsed.TotalMilliseconds}ms)").ConfigureAwait(false);
+            }
             var matchingKeys = UZScheduleService.ScheduleCache.Keys.Where(x => x.Contains(groupName.ToLower()));
             if (matchingKeys.Count() > 1)
             {
-                var matchingGroups = string.Join(", ", matchingKeys.ToArray());
-                //var url = PlanService.ScheduleCache[groupName];
-                await Context.Channel.SendMessageAsync($"Specify the group: {matchingGroups}.");
+                var matchingGroups = string.Join("\n", matchingKeys.ToArray());
+                if (matchingGroups.Length > 1950)
+                {
+                    await Context.Channel.SendMessageAsync("Too many possibilities. Please be more specific.");
+                    return;
+                }
+                await Context.Channel.SendMessageAsync($"Specify the group:\n{matchingGroups}");
             }
             else if (!matchingKeys.Any())
             {
@@ -32,7 +44,7 @@ namespace BachUZ.Modules
             {
                 var matchingKey = matchingKeys.ToArray()[0];
                 await Context.Channel.SendMessageAsync(
-                    $"Class schedule: http://plan.uz.zgora.pl/{UZScheduleService.ScheduleCache[matchingKey]}");
+                    $"Class schedule for {matchingKey}: http://plan.uz.zgora.pl/{UZScheduleService.ScheduleCache[matchingKey]}");
             }
         }
     }
