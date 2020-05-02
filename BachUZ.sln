@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29920.165
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BachUZ", "BachUZ\BachUZ.csproj", "{36479EA5-D429-4EBD-8364-D1692C413076}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BachUZ", "BachUZ\BachUZ.csproj", "{36479EA5-D429-4EBD-8364-D1692C413076}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BachUZ.Database", "BachUZ.Database\BachUZ.Database.csproj", "{5813525B-DA5A-4DA8-858B-64670EA459CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{36479EA5-D429-4EBD-8364-D1692C413076}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36479EA5-D429-4EBD-8364-D1692C413076}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36479EA5-D429-4EBD-8364-D1692C413076}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5813525B-DA5A-4DA8-858B-64670EA459CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5813525B-DA5A-4DA8-858B-64670EA459CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5813525B-DA5A-4DA8-858B-64670EA459CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5813525B-DA5A-4DA8-858B-64670EA459CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
