@@ -1,6 +1,9 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using BachUZ.Database;
 using Discord;
 using Discord.Commands;
 
@@ -24,7 +27,7 @@ namespace BachUZ.Modules
         [Alias("ui", "whois")]
         [Summary("Returns data about a user")]
         [RequireContext(ContextType.Guild)]
-        public async Task UserInfo(IGuildUser usr = null)
+        public async Task UserInfo(IGuildUser? usr = null)
         {
             var user = usr ?? Context.User as IGuildUser;
             if (user == null)
