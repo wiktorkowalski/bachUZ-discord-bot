@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "BachUZ": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
