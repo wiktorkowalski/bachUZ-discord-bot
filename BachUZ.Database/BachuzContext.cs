@@ -25,7 +25,7 @@ namespace BachUZ.Database
         {
             if (!optionsBuilder.IsConfigured)
             {
-                var connectionString = Environment.GetEnvironmentVariable("bachuzConnectionString", EnvironmentVariableTarget.User);
+                var connectionString = Environment.GetEnvironmentVariable("bachuzConnectionString");
                 if (string.IsNullOrWhiteSpace(connectionString))
                 {
                     throw new Exception("Environment Variable bachuzConnectionString is required!");
