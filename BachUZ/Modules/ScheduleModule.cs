@@ -1,12 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using BachUZ.Services;
+using Discord.Commands;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Discord.Commands;
-using AngleSharp;
-using AngleSharp.Html.Dom;
-using System;
-using BachUZ.Services;
 
 namespace BachUZ.Modules
 {
