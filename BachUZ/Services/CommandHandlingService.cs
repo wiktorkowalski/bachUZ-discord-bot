@@ -1,9 +1,10 @@
-﻿using System;
-using System.Reflection;
-using System.Threading.Tasks;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace BachUZ.Services
 {
@@ -41,8 +42,21 @@ namespace BachUZ.Services
             // Create a number to track where the prefix ends and the command begins
             var argPos = 0;
 
+            string prefix = _config["prefix"];
+
+            // Checks for guild custom prefixes
+            if (message.Channel is IGuildChannel guildChannel)
+            {
+                if (Program.CustomPrefixes.TryGetValue(guildChannel.GuildId, out var customPrefix))
+                {
+                    prefix = customPrefix;
+                }
+            }
+
+
+
             // Determine if the message is a command based on the prefix and make sure no bots trigger commands
-            if (!(message.HasStringPrefix(_config["prefix"], ref argPos) ||
+            if (!(message.HasStringPrefix(prefix, ref argPos) ||
                 message.HasMentionPrefix(_client.CurrentUser, ref argPos)) ||
                 message.Author.IsBot)
                 return;
