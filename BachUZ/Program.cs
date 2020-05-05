@@ -35,6 +35,7 @@ namespace BachUZ
             client.LeftGuild += LeftGuild.HandleEvent;
             client.GuildUpdated += GuildUpdated.HandleEvent;
             client.MessageReceived += MessageReceived.HandleEvent;
+            client.UserVoiceStateUpdated += UserVoiceStateUpdated.HandleEvent;
             client.Ready += () =>
             {
                 client.SetActivityAsync(new Game($"Prefix: {_config["prefix"]}"));
