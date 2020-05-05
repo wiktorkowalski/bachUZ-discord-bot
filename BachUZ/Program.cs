@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using BachUZ.Database;
+using BachUZ.Events;
 using BachUZ.Services;
 using Discord;
 using Discord.Commands;
@@ -12,7 +14,7 @@ namespace BachUZ
 {
     class Program
     {
-        private IConfiguration _config;
+        private IConfiguration _config = null!;
         public static void Main(string[] args)
         => new Program().MainAsync().GetAwaiter().GetResult();
 
@@ -20,7 +22,7 @@ namespace BachUZ
         {
             _config = BuildConfig();
 
-            using var services = ConfigureServices();
+            await using var services = ConfigureServices();
             var client = services.GetRequiredService<DiscordSocketClient>();
 
             client.Log += LogAsync;
@@ -29,7 +31,11 @@ namespace BachUZ
             await client.StartAsync();
 
             await services.GetRequiredService<CommandHandlingService>().InstallCommandsAsync();
-
+            client.JoinedGuild += JoinedGuild.HandleEvent;
+            client.LeftGuild += LeftGuild.HandleEvent;
+            client.GuildUpdated += GuildUpdated.HandleEvent;
+            client.MessageReceived += MessageReceived.HandleEvent;
+            client.UserVoiceStateUpdated += UserVoiceStateUpdated.HandleEvent;
             client.Ready += () =>
             {
                 client.SetActivityAsync(new Game($"Prefix: {_config["prefix"]}"));
@@ -48,10 +54,16 @@ namespace BachUZ
         private ServiceProvider ConfigureServices()
         {
             return new ServiceCollection()
-                .AddSingleton<DiscordSocketClient>()
+                .AddSingleton(new DiscordSocketClient
+                (
+                    new DiscordSocketConfig
+                    {
+                        MessageCacheSize = 100
+                    }))
                 .AddSingleton<CommandService>()
                 .AddSingleton<CommandHandlingService>()
                 .AddSingleton(_config)
+                .AddTransient<BachuzContext>()
                 .BuildServiceProvider();
         }
 
