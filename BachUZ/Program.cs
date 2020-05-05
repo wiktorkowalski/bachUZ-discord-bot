@@ -83,8 +83,7 @@ namespace BachUZ
         private IConfiguration BuildConfig()
         {
             return new ConfigurationBuilder()
-                .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName)
-                .AddJsonFile("config.json")
+                .AddEnvironmentVariables()
                 .Build();
         }
     }
