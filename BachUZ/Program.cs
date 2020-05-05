@@ -10,6 +10,8 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace BachUZ
@@ -18,6 +20,7 @@ namespace BachUZ
     {
         public static ConcurrentDictionary<ulong, string> CustomPrefixes = new ConcurrentDictionary<ulong, string>();
         private IConfiguration _config = null!;
+        private static readonly HttpListener Listener = new HttpListener();
         public static void Main(string[] args)
         => new Program().MainAsync().GetAwaiter().GetResult();
 
@@ -56,7 +59,27 @@ namespace BachUZ
                 return Task.CompletedTask;
             };
 
-            await Task.Delay(-1);
+            //http response handler
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    Listener.Start();
+                }
+                catch (HttpListenerException hlex)
+                {
+                    Console.Error.WriteLine(hlex.Message);
+                    return;
+                }
+
+                while (true)
+                {
+                    var context = await Listener.GetContextAsync();
+                    var request = context.Request;
+                    var response = context.Response;
+                    context.Response.Close();
+                }
+            });
         }
 
         private Task LogAsync(LogMessage msg)
