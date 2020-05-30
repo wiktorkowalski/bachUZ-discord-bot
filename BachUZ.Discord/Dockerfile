@@ -8,6 +8,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
 COPY ["BachUZ.Discord/BachUZ.Discord.csproj", "BachUZ.Discord/"]
+RUN dotnet add package Discord.Net -s https://www.myget.org/F/discord-net/api/v3/index.json -v 2.3.0-dev-20200525.6
 RUN dotnet restore "BachUZ.Discord/BachUZ.Discord.csproj"
 COPY . .
 WORKDIR "/src/BachUZ.Discord"
