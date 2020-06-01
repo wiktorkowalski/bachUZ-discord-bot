@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -6,9 +6,14 @@ using System.Threading.Tasks;
 using BachUZ.Database;
 using Discord;
 using Discord.Commands;
+using Microsoft.EntityFrameworkCore;
 
 namespace BachUZ.Modules
 {
+    public enum ResultType
+    {
+        General, Detailed
+    }
     public class InfoModule : ModuleBase<SocketCommandContext>
     {
         private const string EmptyString = "\u200B"; // discord embeds don't accept empty string, so we use 0 width space.
@@ -84,6 +89,84 @@ namespace BachUZ.Modules
                 .Build();
 
             await Context.Channel.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
+        }
+
+        [Command("emotesinfo")]
+        [Alias("ei")]
+        [Summary("Returns data about emotes usage in this guild")]
+        [RequireContext(ContextType.Guild)]
+        public async Task EmotesInfo()
+        {
+            await using (var database = new BachuzContext())
+            {
+                var emotes = await database.Emotes.AsQueryable().Where(emote => emote.Guild.GuildId == Context.Guild.Id).OrderByDescending(emote => emote.Count).ToListAsync();
+                var sb = new StringBuilder();
+                sb.AppendLine("Emotes usage in this server:");
+                foreach (var emote in emotes)
+                {
+                    var row = $"<:{emote.Name}:{emote.EmoteId}> - {emote.Count}";
+                    if (sb.Length + row.Length > 2000)
+                    {
+                        await Context.Channel.SendMessageAsync(sb.ToString()).ConfigureAwait(false);
+                        sb.Clear();
+                    }
+                    sb.AppendLine(row);
+                }
+                await Context.Channel.SendMessageAsync(sb.ToString()).ConfigureAwait(false);
+            }
+        }
+
+        [Command("voiceInfo")]
+        [Alias("vi")]
+        [Summary("Return talk usage")]
+        [RequireContext(ContextType.Guild)]
+        public async Task VoiceInfo(ResultType resultType = ResultType.General)
+        {
+            await using (var database = new BachuzContext())
+            {
+                if (resultType == ResultType.Detailed)
+                {
+                    var usersOnVoice = await database.UsersOnVoice.AsQueryable().Where(user => user.Guild.GuildId == Context.Guild.Id).OrderByDescending(user => user.Time).ToListAsync();
+                    var sb = new StringBuilder();
+                    sb.AppendLine("Time spend on voice channels in this server:");
+                    foreach (var user in usersOnVoice)
+                    {
+                        var row =
+                            $"<@{user.UserId}> <#{user.VoiceChannelId}> - {TimeSpan.FromSeconds(user.Time)}";
+                        if (sb.Length + row.Length > 2000)
+                        {
+                            await Context.Channel.SendMessageAsync(sb.ToString(), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+                            sb.Clear();
+                        }
+                        sb.AppendLine(row);
+                    }
+                    await Context.Channel.SendMessageAsync(sb.ToString(), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+                }
+                else if (resultType == ResultType.General)
+                {
+                    var usersOnVoice = await database.UsersOnVoice.AsQueryable()
+                        .Where(user => user.Guild.GuildId == Context.Guild.Id)
+                        .GroupBy(user => user.UserId)
+                        .Select(o => new { UserId = o.Key, Time = o.Sum(s => s.Time) })
+                        .OrderByDescending(user => user.Time)
+                        .ToListAsync();
+                    var sb = new StringBuilder();
+                    sb.AppendLine("Time spend on voice channels in this server:");
+                    foreach (var user in usersOnVoice)
+                    {
+                        var row =
+                            $"<@{user.UserId}> - {TimeSpan.FromSeconds(user.Time)}";
+                        if (sb.Length + row.Length > 2000)
+                        {
+                            await Context.Channel.SendMessageAsync(sb.ToString(), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+                            sb.Clear();
+                        }
+                        sb.AppendLine(row);
+                    }
+                    await Context.Channel.SendMessageAsync(sb.ToString(), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+                }
+
+            }
         }
     }
 }
