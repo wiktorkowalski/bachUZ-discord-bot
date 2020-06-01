@@ -1,0 +1,63 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-row px-4">
+        @{
+            if (!BachUZ.Website.Data.LoginState.IsLoggedIn)
+            {
+                <a class="btn btn-primary" @onclick="LoginDiscord">Login with Discord</a>
+            }
+            else
+            {
+                <a>Logged as @BachUZ.Website.Data.LoginState.UserInfo.Username#@BachUZ.Website.Data.LoginState.UserInfo.Discriminator</a>
+                <a class="btn btn-secondary" href="/Logout">Logout</a>
+            }
+        }
+        <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+    </div>
+
+    @*<_CookieConsentPartial />*@
+
+    <div class="content px-4">
+        @Body
+    </div>
+</div>
+
+@code{
+
+    protected override void OnInitialized()
+    {
+        //var client = new RestClient("https://api.twitter.com/1.1");
+    }
+
+    private async void LoginDiscord()
+    {
+        //if localstorage contains userinfo
+        if (await localStorage.GetItemAsync<bool>("isLoggedIn"))
+        {
+            //todo i tutaj odparsuj
+            BachUZ.Website.Data.LoginState.IsLoggedIn = true;
+            BachUZ.Website.Data.LoginState.UserInfo = await localStorage.GetItemAsync<BachUZ.Website.Data.UserInfo>("userinfo");
+            BachUZ.Website.Data.LoginState.TokenResponse = await localStorage.GetItemAsync<BachUZ.Website.Data.TokenResponse>("token");
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+        var letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        var random = new Random();
+        var state = new string(Enumerable.Repeat(letters, 32).Select(s => s[random.Next(s.Length)]).ToArray());
+        await localStorage.SetItemAsync("state", state);
+        var href = $"https://discord.com/api/oauth2/authorize?client_id=692402543589982269&redirect_uri=https%3A%2F%2Fbachuzwebsite.azurewebsites.net%2F&response_type=code&scope=identify%20connections%20guilds";
+        NavigationManager.NavigateTo(href);
+    }
+
+    private void Logout()
+    {
+        NavigationManager.NavigateTo("/Logout");
+    }
+}
