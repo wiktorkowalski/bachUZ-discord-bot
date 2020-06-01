@@ -43,7 +43,7 @@
             .AddParameter("client_secret", "-ak-mZ5ddbZdqxw5aOtIe9TfmeH-_mev")
             .AddParameter("grant_type", "authorization_code")
             .AddParameter("code", codeString)
-            .AddParameter("redirect_uri", NavManager.BaseUri+"/Login")
+            .AddParameter("redirect_uri", NavManager.BaseUri+"login")
             .AddParameter("scope", "identify connections guilds");
         var tokenResponse = client.Execute(tokenRequest);
         var parsedToken = deserializer.Deserialize<BachUZ.Website.Data.TokenResponse>(tokenResponse);
