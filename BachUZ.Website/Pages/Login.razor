@@ -1,0 +1,69 @@
+﻿@page "/Login"
+@inject NavigationManager NavManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@using RestSharp
+@using Newtonsoft.Json
+
+<h3>Login</h3>
+
+<p>code @codeString</p>
+<p>state @stateString</p>
+<p>token @tokenString</p>
+
+@code {
+    string codeString { get; set; }
+    string stateString { get; set; }
+    string tokenString { get; set; }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        await localStorage.SetItemAsync("bamboozled", "false");
+        await localStorage.SetItemAsync("loginError", "false");
+        if (QueryHelpers.ParseQuery(uri.Query).ContainsKey("code") && QueryHelpers.ParseQuery(uri.Query).ContainsKey("state"))
+        {
+            QueryHelpers.ParseQuery(uri.Query).TryGetValue("state", out var _state);
+            var state = await localStorage.GetItemAsync<string>("state");
+            if (state == _state)
+            {
+                QueryHelpers.ParseQuery(uri.Query).TryGetValue("code", out var _code);
+                await localStorage.SetItemAsync("code", _code.ToString());
+                codeString = _code;
+                stateString = state;
+            }
+            else await localStorage.SetItemAsync("bamboozled", "true");
+        }
+        else await localStorage.SetItemAsync("loginError", "true");
+
+        RestSharp.Serialization.Json.JsonDeserializer deserializer = new RestSharp.Serialization.Json.JsonDeserializer();
+
+        var client = new RestClient("https://discord.com/api");
+        var tokenRequest = new RestRequest("/oauth2/token", Method.POST);
+        tokenRequest.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+        tokenRequest.AddParameter("client_id", "692402543589982269")
+            .AddParameter("client_secret", "-ak-mZ5ddbZdqxw5aOtIe9TfmeH-_mev")
+            .AddParameter("grant_type", "authorization_code")
+            .AddParameter("code", codeString)
+            .AddParameter("redirect_uri", NavManager.BaseUri+"/Login")
+            .AddParameter("scope", "identify connections guilds");
+        var tokenResponse = client.Execute(tokenRequest);
+        var parsedToken = deserializer.Deserialize<BachUZ.Website.Data.TokenResponse>(tokenResponse);
+        var serializedToken = JsonConvert.SerializeObject(parsedToken);
+
+        var userinfoRequest = new RestRequest("/users/@me", Method.GET);
+        userinfoRequest.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+        userinfoRequest.AddHeader("Authorization", $"Bearer {parsedToken.access_token}");
+        var userinfoResponse = client.Execute(userinfoRequest);
+        var parsedUserInfo = deserializer.Deserialize<BachUZ.Website.Data.UserInfo>(userinfoResponse);
+        var serializedUserInfo = JsonConvert.SerializeObject(parsedUserInfo);
+
+        //todo parsuj to normalnie dałnie
+        await localStorage.SetItemAsync("token", serializedToken);
+        await localStorage.SetItemAsync("userinfo", serializedUserInfo);
+        await localStorage.SetItemAsync("isLoggedIn", true);
+        BachUZ.Website.Data.LoginState.TokenResponse = parsedToken;
+        BachUZ.Website.Data.LoginState.UserInfo = parsedUserInfo;
+        BachUZ.Website.Data.LoginState.IsLoggedIn = true;
+
+        NavManager.NavigateTo("/");
+    }
+}

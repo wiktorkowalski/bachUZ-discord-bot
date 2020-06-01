@@ -1,0 +1,47 @@
+﻿@page "/uservoicescore"
+
+<h3>UserVoiceScore</h3>
+
+@if (!userVoiceScores.Any())
+{
+    <p>Loading...</p>
+}
+else
+{
+<table class="table">
+    <thead>
+        <tr>
+            <th>User ID</th>
+            <th>Voice Channel ID</th>
+            <th>Guild ID</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in userVoiceScores)
+        {
+            <tr>
+                <td>@item.UserId</td>
+                <td>@item.VoiceChannelId</td>
+                <td>@item.GuildId</td>
+                <td>@item.Time</td>
+            </tr>
+        }
+    </tbody>
+</table>
+}
+
+
+
+@code {
+    List<BachUZ.Database.UsersOnVoice> userVoiceScores = new List<Database.UsersOnVoice>();
+
+    protected async override Task OnInitializedAsync()
+    {
+        await using (var dbContext = new BachUZ.Database.BachuzContext())
+        {
+            userVoiceScores = dbContext.UsersOnVoice.Select(item => item).OrderByDescending(item => item.Time).ToList();
+        }
+
+    }
+}

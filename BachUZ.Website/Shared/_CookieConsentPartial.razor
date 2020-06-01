@@ -1,0 +1,42 @@
+﻿@using Microsoft.AspNetCore.Http.Features
+@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Authentication;
+@using Microsoft.AspNetCore.Authentication.Cookies;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject IHttpContextAccessor hca
+@inject IJSRuntime JSRuntime
+
+
+@if (showBanner)
+{
+    <div id="cookieConsent" class="alert alert-info alert-dismissible fade show" role="alert">
+        We use cookies to run this site. If you can't agree, then GTFO. Or click Accept. <a asp-page="/Privacy"></a>.
+        <button type="button" class="accept-policy close" data-dismiss="alert" aria-label="Close" data-cookie-string="@cookieString" @onclick="AcceptMessage">
+            <span aria-hidden="true">Accept</span>
+        </button>
+    </div>
+
+    @code {
+        ITrackingConsentFeature consentFeature;
+        bool showBanner;
+        string cookieString;
+
+        protected override void OnInitialized() => Cookies();
+
+        private void AcceptMessage()
+        {
+            JSRuntime.InvokeVoidAsync(
+                "netLearnerJsFunctions.acceptMessage",
+                cookieString);
+            showBanner = false;
+        }
+
+        private void Cookies()
+        {
+            consentFeature = hca.HttpContext.Features.Get<ITrackingConsentFeature>();
+            showBanner = !consentFeature?.CanTrack ?? false;
+            cookieString = consentFeature?.CreateConsentCookie();
+        }
+    }
+}

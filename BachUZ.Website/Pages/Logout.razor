@@ -1,0 +1,23 @@
+﻿@page "/Logout"
+@inject NavigationManager NavManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<h3>Logout</h3>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        await localStorage.SetItemAsync("bamboozled", "false");
+        await localStorage.SetItemAsync("loginError", "false");
+        await localStorage.SetItemAsync("isLoggedIn", false);
+        await localStorage.RemoveItemAsync("code");
+        await localStorage.RemoveItemAsync("state");
+        await localStorage.RemoveItemAsync("token");
+        await localStorage.RemoveItemAsync("userinfo");
+        BachUZ.Website.Data.LoginState.IsLoggedIn = false;
+        BachUZ.Website.Data.LoginState.UserInfo = null;
+        BachUZ.Website.Data.LoginState.TokenResponse = null;
+        NavManager.NavigateTo("/");
+    }
+}
