@@ -52,7 +52,7 @@
         var random = new Random();
         var state = new string(Enumerable.Repeat(letters, 32).Select(s => s[random.Next(s.Length)]).ToArray());
         await localStorage.SetItemAsync("state", state);
-        var href = $"https://discord.com/api/oauth2/authorize?client_id=692402543589982269&redirect_uri=https%3A%2F%2Fbachuzwebsite.azurewebsites.net%2F&response_type=code&scope=identify%20connections%20guilds";
+        var href = Environment.GetEnvironmentVariable("discordLogin")+$"&state={state}";
         NavigationManager.NavigateTo(href);
     }
 
