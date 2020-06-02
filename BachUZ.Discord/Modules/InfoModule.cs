@@ -4,8 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BachUZ.Database;
+using BachUZ.Discord.Utils;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace BachUZ.Modules
@@ -30,7 +33,7 @@ namespace BachUZ.Modules
 
         [Command("userinfo")]
         [Alias("ui", "whois")]
-        [Summary("Returns data about a user")]
+        [Summary("Returns data about a guildUser")]
         [RequireContext(ContextType.Guild)]
         public async Task UserInfo(IGuildUser? usr = null)
         {
@@ -104,15 +107,15 @@ namespace BachUZ.Modules
                 sb.AppendLine("Emotes usage in this server:");
                 foreach (var emote in emotes)
                 {
-                    var row = $"<:{emote.Name}:{emote.EmoteId}> - {emote.Count}";
-                    if (sb.Length + row.Length > 2000)
-                    {
-                        await Context.Channel.SendMessageAsync(sb.ToString()).ConfigureAwait(false);
-                        sb.Clear();
-                    }
-                    sb.AppendLine(row);
+                    sb.AppendLine($"<:{emote.Name}:{emote.EmoteId}> - {emote.Count}");
                 }
-                await Context.Channel.SendMessageAsync(sb.ToString()).ConfigureAwait(false);
+                var chunks = Utilities.SplitMessage(sb.ToString());
+                foreach (var chunk in chunks)
+                {
+                    await Context.Channel.SendMessageAsync(chunk,
+                            allowedMentions: AllowedMentions.None)
+                        .ConfigureAwait(false);
+                }
             }
         }
 
@@ -131,16 +134,16 @@ namespace BachUZ.Modules
                     sb.AppendLine("Time spend on voice channels in this server:");
                     foreach (var user in usersOnVoice)
                     {
-                        var row =
-                            $"<@{user.UserId}> <#{user.VoiceChannelId}> - {TimeSpan.FromSeconds(user.Time)}";
-                        if (sb.Length + row.Length > 2000)
-                        {
-                            await Context.Channel.SendMessageAsync(sb.ToString(), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
-                            sb.Clear();
-                        }
-                        sb.AppendLine(row);
+                        sb.AppendLine($"<@{user.UserId}> <#{user.VoiceChannelId}> - {TimeSpan.FromSeconds(user.Time)}");
                     }
-                    await Context.Channel.SendMessageAsync(sb.ToString(), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+
+                    var chunks = Utilities.SplitMessage(sb.ToString());
+                    foreach (var chunk in chunks)
+                    {
+                        await Context.Channel.SendMessageAsync(chunk,
+                                allowedMentions: AllowedMentions.None)
+                            .ConfigureAwait(false);
+                    }
                 }
                 else if (resultType == ResultType.General)
                 {
@@ -154,18 +157,64 @@ namespace BachUZ.Modules
                     sb.AppendLine("Time spend on voice channels in this server:");
                     foreach (var user in usersOnVoice)
                     {
-                        var row =
-                            $"<@{user.UserId}> - {TimeSpan.FromSeconds(user.Time)}";
-                        if (sb.Length + row.Length > 2000)
-                        {
-                            await Context.Channel.SendMessageAsync(sb.ToString(), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
-                            sb.Clear();
-                        }
-                        sb.AppendLine(row);
+                        sb.AppendLine($"<@{user.UserId}> - {TimeSpan.FromSeconds(user.Time)}");
                     }
-                    await Context.Channel.SendMessageAsync(sb.ToString(), allowedMentions: AllowedMentions.None).ConfigureAwait(false);
+                    var chunks = Utilities.SplitMessage(sb.ToString());
+                    foreach (var chunk in chunks)
+                    {
+                        await Context.Channel.SendMessageAsync(chunk,
+                                allowedMentions: AllowedMentions.None)
+                            .ConfigureAwait(false);
+                    }
                 }
 
+            }
+        }
+
+        [Command("voiceInfo")]
+        [Alias("vi")]
+        [Summary("Return talk usage")]
+        [RequireContext(ContextType.Guild)]
+        public async Task VoiceInfo(SocketUser guildUser, ResultType resultType = ResultType.General)
+        {
+            await using (var database = new BachuzContext())
+            {
+                if (resultType == ResultType.General)
+                {
+                    var userData = database.UsersOnVoice.AsQueryable()
+                        .Where(user => user.Guild.GuildId == Context.Guild.Id && user.UserId == guildUser.Id)
+                        .GroupBy(user => user.UserId)
+                        .Select(o => new { UserId = o.Key, Time = o.Sum(s => s.Time) })
+                        .OrderByDescending(user => user.Time)
+                        .FirstOrDefault();
+
+
+                    await Context.Channel.SendMessageAsync($"<@{userData.UserId}> total time on voice channels in this guild - {TimeSpan.FromSeconds(userData.Time)}",
+                            allowedMentions: AllowedMentions.None)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    var usersOnVoice = await database.UsersOnVoice.AsQueryable()
+                        .Where(user => user.Guild.GuildId == Context.Guild.Id && user.UserId == guildUser.Id)
+                        .OrderByDescending(user => user.Time)
+                        .ToListAsync();
+
+                    var response = new StringBuilder();
+                    foreach (var user in usersOnVoice)
+                    {
+                        response.AppendLine(
+                            $"<@{user.UserId}> <#{user.VoiceChannelId}> - {TimeSpan.FromSeconds(user.Time)}");
+                    }
+
+                    var chunks = Utilities.SplitMessage(response.ToString());
+                    foreach (var chunk in chunks)
+                    {
+                        await Context.Channel.SendMessageAsync(chunk,
+                                allowedMentions: AllowedMentions.None)
+                            .ConfigureAwait(false);
+                    }
+                }
             }
         }
     }
